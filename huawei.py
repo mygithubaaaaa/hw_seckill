@@ -501,16 +501,24 @@ class HuaWei:
     def __do_start_buying(self):
         if not self.is_can_submit_order:
             try:
-                buttons = self.browser.find_elements(By.ID, 'prd-botnav-rightbtn')
                 orderBtn = None
-                for button in buttons:
-                    if '立即购买' == button.text:
-                        orderBtn = button
+                while orderBtn is None:
+                    buttons = self.browser.find_elements(By.ID, 'prd-botnav-rightbtn')
+                    for button in buttons:
+                        current_text = button.text.strip() # 去除可能存在的空格
+                        # 增加匹配关键词，防止文案微调
+                        if current_text in ['立即购买', '立即申购', '立即下单']:
+                            orderBtn = button
+                            logger.info(f"找到购买按钮：【{current_text}】")
+                            break
 
                 if orderBtn is not None:
                     orderBtn.click()
+                    logger.info("点击立即购买按钮")
             except (StaleElementReferenceException, NoSuchElementException, ElementClickInterceptedException):
                 logger.warning("当前尝试下单失败，立即下单按钮不存在或当前不可点击")
+        else:
+            logger.info("当前已可进行下单操作，无需继续点击立即下单按钮")
 
     def __check_box_ct_pop_exists(self):
         boxCtPopIsExists = False
@@ -677,6 +685,7 @@ class HuaWei:
                 for button in buttons:
                     if '立即购买' == button.text:
                         orderBtn = button
+                        break
                 if orderBtn is not None:
                     orderBtn.click()
 
